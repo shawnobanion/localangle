@@ -37,8 +37,8 @@ class GensimIndexer:
         tfidf.save('%s/gensim.tfidf' % self.directory)
         
         # Index
-        index = similarities.MatrixSimilarity(tfidf[corpus])
-        index.save('%s/gensim.index' % self.directory)
+        #index = similarities.MatrixSimilarity(tfidf[corpus])
+        #index.save('%s/gensim.index' % self.directory)
 
 class GensimSearcher:
     
@@ -47,11 +47,13 @@ class GensimSearcher:
         self.directory = directory
         
         self.dictionary = corpora.Dictionary.load('%s/gensim.dict' % self.directory)
-        #corpus = corpora.MmCorpus('%s/gensim.mm' % self.directory)
+        corpus = corpora.MmCorpus('%s/gensim.mm' % self.directory)
         self.id2doc = pickle.load(open('%s/id2doc' % self.directory, 'r'))
         
         self.tfidf = models.TfidfModel.load('%s/gensim.tfidf' % self.directory)
-        self.index =  similarities.MatrixSimilarity.load('%s/gensim.index' % self.directory)
+        #self.index =  similarities.MatrixSimilarity.load('%s/gensim.index' % self.directory)
+        
+        self.index = similarities.Similarity('%s/gensim.index' % self.directory, corpus, num_features=len(self.dictionary))
     
     def search(self, text):
         vec_bow = self.dictionary.doc2bow(tokenize(text))

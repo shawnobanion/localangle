@@ -1,5 +1,7 @@
 import urllib, urllib2
 import json
+import dateutil.parser
+import re
 
 class GoogleNews():
     
@@ -35,4 +37,17 @@ class GoogleNews():
         params = self._get_params()
         params['topic'] = topic
         response = json.load(self._fetch(self._format_url(params)))
-        return response['responseData']['results']
+        return map(self._build_story, response['responseData']['results'])
+        
+    def _build_story(self, story):
+        story['titleNoFormatting'] = self._clean_text(story['titleNoFormatting'])
+        story['content'] = self._clean_text(story['content'])
+        story['date'] = dateutil.parser.parse(story['publishedDate'])
+        return story
+    
+    def _clean_text(self, text):
+        text = text.replace('&#39;',"'")
+        text = text.replace('&quot;',"'")
+        text = text.replace('&amp;',"&")
+        text = re.sub('</?[A-Za-z0-9]+>', '', text)
+        return text
