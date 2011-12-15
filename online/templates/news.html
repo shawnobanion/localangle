@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Page Title</title>
+
+    <style type="text/css">
+    body {background: #F2F2F2;font-family: Georgia, serif; font-size: 12px; }
+    h1, h2, h3, h4 { font-family: Georgia, serif; }
+    #container {width: 800px; padding: 20px; margin: 10px auto 30px auto; text-align: center; }
+    .rounded-corners {-webkit-border-radius: 5px;}
+    .basic-container { float: left; width: 100%; margin: 0; padding: 20px; border: 1px solid #DADBDC;background: #FFF; }
+    .shadow { -webkit-box-shadow: 1px 1px 1px #DADBDC; }
+    .two-columns { width: 50%; }
+    a { color: #004276; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    
+    .article-container { width: 200px; float: left; margin: 10px 20px 10px 0; }
+    
+    .article { width: 200px; text-align: left; }
+    
+    .article img {
+        border: solid 1px #9DA3AD;
+        width: 200px;
+    }
+    
+    .feature-article {
+        width: 460px;
+        text-align: left;
+    }
+    .feature-article img {
+        width: 460px;
+    }
+    
+    h1 {
+        font-weight: normal;
+        font-size: 46px;
+        margin: 10px 0 30px 0;
+    }
+    h4 {
+        font-weight: normal;
+        font-size: 23px;
+        margin: 10px 0 0 0;
+    }
+    .red {
+        color: #B10816;
+    }
+    
+    .context {
+        color: #B10816;
+    }
+    </style>
+
+</head>
+
+<body>
+
+<div id="container">
+    <!--<div class="rounded-corners basic-container">-->
+        <h1>
+            {% if city %}
+                {{ city }},
+            {% endif %}
+            {{ state }}
+        </h1>
+        
+        
+        <div class="basic-container feature-article shadow">
+            <img src="{{stories.0.image.url}}" />
+            <h4>
+                <a href="{{stories.0.unescapedUrl}}" target="_blank">
+                    {% autoescape off %}
+                        {% if stories.0.context.headline %}
+                            {{ stories.0.context.headline }}
+                        {% else %}
+                            {{ stories.0.titleNoFormatting }}
+                        {% endif %}
+                    {% endautoescape %}
+                </a>
+            </h4>
+            <p>{{stories.0.date}}</p>
+            <p>
+                {{ stories.0.content }}
+            </p>           
+            
+            {% for entity in stories.0.context.entities %}
+                <p style="font-weight: bold;">{{ entity.name }}</p>
+                {% for instance in entity.instances %}
+                    {% autoescape off %}
+                        <p style="font-style: italic;">{{ instance }}</p>
+                    {% endautoescape %}
+                {% endfor %}
+            {% endfor %}
+            
+        </div>
+        
+        <div style="clear: both;"></div>
+        
+        
+        
+        {% for story in stories %}
+            {% if not forloop.first %}
+                <div class="basic-container article-container shadow">
+                    <div class="article">
+                        <img src="{{story.image.url}}" />
+                        <h4>
+                            <a href="{{story.unescapedUrl}}" target="_blank">
+                                {% autoescape off %}
+                                    {% if story.context.headline %}
+                                        {{ story.context.headline }}
+                                    {% else %}
+                                        {{ story.titleNoFormatting }}
+                                    {% endif %}
+                                {% endautoescape %}
+                            </a>
+                        </h4>
+                        <p>{{story.date}}</p>
+                        <p>
+                             {{ story.content }}
+                        </p>
+                                           
+                        {% for entity in story.context.entities %}
+                            <p style="font-weight: bold;">{{ entity.name }}</p>
+                            {% for instance in entity.instances %}
+                                {% autoescape off %}
+                                    <p style="font-style: italic;">{{ instance }}</p>
+                                {% endautoescape %}
+                            {% endfor %}
+                        {% endfor %}
+    
+                    </div>
+                </div>
+                {% if forloop.counter0|divisibleby:3 %}
+                    <div style="clear: both;"></div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        
+    
+    <!--</div>-->
+</div>
+
+</body>
+</html>
