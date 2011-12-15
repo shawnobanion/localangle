@@ -5,9 +5,40 @@ def remove_punctuation(text):
 
 def clean_company_name(name, robust=False):
     name = remove_punctuation(name.lower())
-    stop_list = ['inc', 'corp', 'co', 'llc', 'corporation', 'group', 'ltd', 'company', 'amp', 'entertainment', 'communcations', 'com', 'the']
+    
+    stop_list = [    
+        'amp',
+        'and',
+        'co',
+        'companies',
+        'company',
+        'corp',
+        'corporation',
+        'com',
+        'communications',
+        'entertainment',
+        'group',
+        'holdings',
+        'inc',
+        'l',
+        'llc',
+        'ltd',
+        'p',
+        'plc',
+        'system',
+        'systems',
+        'technology',
+        'the'
+        ]
+    
     if robust:
-        stop_list += ['international', 'securities', 'software', 'systems']
+        stop_list += [
+            'international',
+            'securities',
+            'software',
+            'usa'
+            ]
+        
     name = ' '.join(filter(lambda word: word not in stop_list, name.split()))
     return name
 

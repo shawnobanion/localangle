@@ -38,7 +38,7 @@ def debug():
 def foo():
     db = get_connection()
     searcher = GensimSearcher('companies_index')
-    COSINE_THRESHOLD = .75
+    COSINE_THRESHOLD = .6
     
     all_companies = set([entity['text'] for story in db.stories.find() for entity in story['entities'] if entity['type'] == 'Company'])
     matched_companies = set(db.stories.distinct('contexts.entities.name'))

@@ -6,7 +6,8 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
                        (r'^$', 'localangle.views.index'),
-                       (r'^news/(?P<location>[^/]+)/$', 'localangle.views.news'),
+                       (r'^news/(?P<state>[^/]+)/$', 'localangle.views.news'),
+                       (r'^news/(?P<state>[^/]+)/(?P<city>[^/]+)/$', 'localangle.views.news'),
     # Example:
     # (r'^web/', include('web.foo.urls')),
 

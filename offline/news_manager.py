@@ -47,7 +47,7 @@ def update_contexts(incremental=True):
     db = get_connection()
     
     # Cache the cleaned company names
-    cleaned_company_names = dict([(company['name'], clean_company_name(company['name'])) for company in db.companies.find()])
+    cleaned_company_names = collections.defaultdict(str, [(clean_company_name(company['name']), company['name']) for company in db.companies.find()])
     
     story_criteria = { 'entities' : { '$exists' : True } }
     if incremental:
@@ -61,51 +61,62 @@ def update_contexts(incremental=True):
             if entity['type'] == 'Company':
                 
                 cleaned_entity_name = clean_company_name(entity['text'])
-                
-                for company in db.companies.find():
-                    if cleaned_entity_name == cleaned_company_names[company['name']]:
+                lookup_company_name = cleaned_company_names[cleaned_entity_name]
+                                
+                if lookup_company_name:
+                    company = db.companies.find_one( { 'name' : lookup_company_name })
+                                        
+                    for location in company['locations']:
+                        logging.debug('%s, %s, %s' % (story['title'], location, entity['text']))
                         
-                        for location in company['location']:
-                            logging.debug('%s, %s, %s' % (story['title'], location, entity['text']))
-                            
-                            # Check to see if the location already exists in the contexts                            
-                            location_exists = any([context for context in story['contexts'] if context['location'] == location])
-                            if not location_exists:
-                                story['contexts'].append({
-                                    'location' : location,
-                                    'entities' : [{
+                        # Check to see if the location already exists in the contexts                            
+                        location_exists = any([context for context in story['contexts'] if context['location'] == location])
+                        if not location_exists:
+                            story['contexts'].append({
+                                'location' : location,
+                                'entities' : [{
+                                    'name' : entity['text'],
+                                    'type' : entity['type'],
+                                    'instances' : entity['instances']
+                                }]
+                            })
+                        else:
+                            for context in story['contexts']:
+                                if context['location'] == location:
+                                    context['entities'].append({
                                         'name' : entity['text'],
                                         'type' : entity['type'],
                                         'instances' : entity['instances']
-                                    }]
-                                })
-                            else:
-                                for context in story['contexts']:
-                                    if context['location'] == location:
-                                        context['entities'].append({
-                                            'name' : entity['text'],
-                                            'type' : entity['type'],
-                                            'instances' : entity['instances']
-                                        })        
-                            
-                        break
-
+                                    })
         db.stories.save(story)
                
-def update_headlines_blurbs():
+def update_headlines_blurbs(incremental=True):
     db = get_connection()
-    for story in db.stories.find({ 'entities' : { '$exists' : True }, 'contexts' : { '$exists' : True }}):
+
+    alchemy = AlchemyAPI()
+    
+
+    story_criteria = { 'entities' : { '$exists' : True }, 'contexts' : { '$exists' : True, '$ne' : [] }}
+    if incremental:
+        story_criteria['contexts.headline'] = { '$exists' : False }
+            
+    for story in db.stories.find(story_criteria):
         for context in story['contexts']:
+            context['headline'] = None
+            display_location = context['location']['city'] if context['location']['city'] else context['location']['state']
             for entity in context['entities']:
-                
-                # If the entity exists in the story headline, rewrite it
-                entity_pattern = re.compile('\\b(?P<entity>%s)\\b' % clean_company_name(entity['name'], robust=True), flags=re.IGNORECASE)
-                entity_search = entity_pattern.search(story['titleNoFormatting'])
-                if entity_search:
-                    display_location = context['location'].split(',')[0] if len(context['location'].split(',')) > 1 else context['location']
-                    new_headline = entity_pattern.sub('%s-based %s' % (display_location, entity_search.group('entity')), story['titleNoFormatting'])
+                new_headline = rewrite_with_entity_location(story['titleNoFormatting'], entity['name'], display_location)
+                if new_headline:
                     logging.debug(new_headline)
                     context['headline'] = new_headline
-                    break
-                
-        db.stories.save(story)               
+                for i, instance in enumerate(entity['instances']):
+                    entity['instances'][i] = rewrite_with_entity_location(instance, alchemy._escape_special_chars(entity['name']), display_location, clean_entity_name=False)
+                    assert(entity['instances'][i])
+        db.stories.save(story)
+        
+def rewrite_with_entity_location(text, entity, display_location, clean_entity_name=True):
+    entity_pattern = re.compile('\\b(?P<entity>%s)\\b' % (clean_company_name(entity, robust=True) if clean_entity_name else entity), flags=re.IGNORECASE)
+    entity_search = entity_pattern.search(text)
+    if entity_search:
+        return entity_pattern.sub('<span class=\"context\">%s-based %s</span>' % (display_location, entity_search.group('entity')), text)
+    return None
