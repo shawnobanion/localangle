@@ -33,10 +33,13 @@ def clean_company_name(name, robust=False):
     
     if robust:
         stop_list += [
+            'air',
             'international',
+            'lines',
             'securities',
             'software',
-            'usa'
+            'usa',
+            'wireless'
             ]
         
     name = ' '.join(filter(lambda word: word not in stop_list, name.split()))
