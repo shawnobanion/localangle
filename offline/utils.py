@@ -34,6 +34,7 @@ def clean_company_name(name, robust=False):
     if robust:
         stop_list += [
             'air',
+            'capital',
             'international',
             'lines',
             'securities',

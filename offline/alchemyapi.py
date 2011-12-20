@@ -14,8 +14,7 @@ class AlchemyAPI():
     def _get_params(self):
         return {
             'apikey' : self.apikey,
-            'outputMode' : 'json',
-            'showSourceText' : '1'
+            'outputMode' : 'json'
         }
     
     def analyze_text(self, text):
@@ -28,6 +27,7 @@ class AlchemyAPI():
     def analyze_url(self, url):
         params = self._get_params()
         params['url'] = url
+        params['showSourceText'] = '1'
         url = ' http://access.alchemyapi.com/calls/url/URLGetRankedNamedEntities?%s' % urllib.urlencode(params)
         response = json.load(self._fetch(url))
                
@@ -40,6 +40,13 @@ class AlchemyAPI():
                 if re.search('\\b%s\\b' % self._escape_special_chars(entity['text']), sentence):
                     entity['instances'].append(sentence)
         
+        return response
+    
+    def analyze_category_url(self, url):
+        params = self._get_params()
+        params['url'] = url
+        url = 'http://access.alchemyapi.com/calls/url/URLGetCategory?%s' % urllib.urlencode(params)
+        response = json.load(self._fetch(url))
         return response
     
     def _escape_special_chars(self, text):
