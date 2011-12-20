@@ -24,7 +24,7 @@
                 <span style="color: #B10816;">new</span>
                 {% endif %}
             {% else %}
-                <a href="/news/{{ location.location.state }}">{{ location.location.state }}</a>
+                <a href="/news/{{ location.location.state }}">{{ location.location.state }} ({{ location.count }})</a>
             {% endif %}
         </p>
     {% endfor %}
