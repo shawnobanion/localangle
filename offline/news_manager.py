@@ -92,6 +92,13 @@ def update_contexts(incremental=True):
         
         _db.stories.save(story)
 
+def search_and_replace_text(source_text, search_text, replacement_pattern):
+    pattern = re.compile('\\b(?P<token>%s)\\b' % search_text, flags=re.IGNORECASE)
+    search = pattern.search(source_text)
+    if search:
+        return pattern.sub(replacement_pattern % search.group('token'), source_text)
+    return None
+
 def update_headlines_blurbs(incremental=True):
     alchemy = AlchemyAPI()
     
@@ -104,6 +111,18 @@ def update_headlines_blurbs(incremental=True):
         for context in story['contexts']:
             context['headline'] = None
             display_location = context['location']['city'] if context['location']['city'] else context['location']['state']
+            
+            for entity in context['entities']:
+                
+                if entity['type'] == 'Person':
+                    new_headline = search_and_replace_text(story['titleNoFormatting'], entity['name'], '<span class=\"context\">%s native %s</span>' % (display_location, '%s'))
+                    if new_headline:
+                        logging.debug(new_headline)
+                        context['headline'] = new_headline
+                        break
+            
+            
+            """
             for entity in context['entities']:
                 new_headline = rewrite_with_entity_location(story['titleNoFormatting'], entity['name'], display_location)
                 if new_headline:
@@ -112,6 +131,8 @@ def update_headlines_blurbs(incremental=True):
                 for i, instance in enumerate(entity['instances']):
                     entity['instances'][i] = rewrite_with_entity_location(instance, alchemy._escape_special_chars(entity['name']), display_location, clean_entity_name=False)
                     assert(entity['instances'][i])
+            """
+            
         _db.stories.save(story)
         
 def rewrite_with_entity_location(text, entity, display_location, clean_entity_name=True):

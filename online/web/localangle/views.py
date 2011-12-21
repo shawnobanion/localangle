@@ -6,37 +6,43 @@ from collections import defaultdict
 import dateutil.parser
 import datetime
 
-def init_db_connection():
-    return Connection()['localangle']
+_db = Connection()['localangle']
 
 def index(request):
-    db = init_db_connection()
-    
-    #locations = defaultdict(int)
-    #for story in db.stories.find({ 'contexts' : { '$exists' : True }}):
-    #    for context in story['contexts']:
-    #        locations[context['location']] += 1
-    #return render_to_response('index.html', { 'locations' : [{ 'location' : location, 'count' : locations[location] } for location in sorted(locations)] })
-    
-    #return render_to_response('index.html', { 'locations' : db.stories.distinct('contexts.location') })
-    
-    new_threshold = datetime.datetime.now() - datetime.timedelta(hours=8)
-    
     return render_to_response('index.html', {
         'locations' : [ {
             'location' : location,
-            'count' : db.stories.find({ 'contexts.location.city' : location['city'], 'contexts.location.state' : location['state'] }).count(),
-            'new' : db.stories.find({ 'contexts.location.city' : location['city'], 'contexts.location.state' : location['state'] }).sort('date', direction=DESCENDING).limit(1).next()['date'] > new_threshold
-            } for location in db.stories.distinct('contexts.location')]
+            'metadata' : get_metadata(location['city'], location['state']),
+            #'count' : _db.stories.find({ 'contexts.location.city' : location['city'], 'contexts.location.state' : location['state'] }).count(),
+            #'new' : _db.stories.find({ 'contexts.location.city' : location['city'], 'contexts.location.state' : location['state'] }).sort('date', direction=DESCENDING).limit(1).next()['date'] > new_threshold
+            } for location in _db.stories.distinct('contexts.location')]
             })
     
+def get_metadata(city, state):
+    new_threshold = datetime.datetime.now() - datetime.timedelta(hours=8)
+    isnew = False
+    persons, companies = 0, 0
+    for story in _db.stories.find({ 'contexts.location.city' : city, 'contexts.location.state' : state }):
+        if story['date'] > new_threshold:
+            isnew = True
+        distinct_entity_types = set([entity['type'] for context in story['contexts'] for entity in context['entities'] if context['location']['city'] == city and context['location']['state'] == state])
+        if 'Person' in distinct_entity_types:
+            persons += 1
+        if 'Company' in distinct_entity_types:
+            companies += 1
+    return {
+        'persons' : persons,
+        'companies' : companies,
+        'isnew' : isnew
+    }
+        
 def news(request, state, city=None):
-    db = init_db_connection()
+
     story_criteria = { 'contexts.location.state' : state }
     if city:
         story_criteria['contexts.location.city'] = city
     
-    stories = db.stories.find(story_criteria).sort('date', direction=DESCENDING).limit(16)
+    stories = _db.stories.find(story_criteria).sort('date', direction=DESCENDING).limit(16)
     return render_to_response('news.html', {
         'state' : state,
         'city' : city,
