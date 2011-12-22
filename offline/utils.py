@@ -37,8 +37,10 @@ def clean_company_name(name, robust=False):
             'capital',
             'international',
             'lines',
+            'mae',
             'securities',
             'software',
+            'technologies',
             'usa',
             'wireless'
             ]

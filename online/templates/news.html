@@ -64,7 +64,7 @@
             {{ state }}
         </h1>
         
-        
+        <!--
         <div class="basic-container feature-article shadow">
             <img src="{{stories.0.image.url}}" />
             <h4>
@@ -80,7 +80,15 @@
             </h4>
             <p>{{stories.0.date}}</p>
             <p>
-                {{ stories.0.content }}
+                <p>
+                    {% if stories.0.context.blurb %}
+                        {% autoescape off %}
+                            {{ stories.0.context.blurb }}
+                        {% endautoescape %}
+                    {% else %}
+                        {{ stories.0.content }}
+                    {% endif %}
+                </p>
             </p>           
             
             {% for entity in stories.0.context.entities %}
@@ -93,16 +101,19 @@
             {% endfor %}
             
         </div>
-        
+        -->
+
         <div style="clear: both;"></div>
         
         
         
         {% for story in stories %}
-            {% if not forloop.first %}
+            
                 <div class="basic-container article-container shadow">
                     <div class="article">
-                        <img src="{{story.image.url}}" />
+                        {% if story.image.url %}
+                            <img src="{{story.image.url}}" />
+                        {% endif %}
                         <h4>
                             <a href="{{story.unescapedUrl}}" target="_blank">
                                 {% autoescape off %}
@@ -116,24 +127,31 @@
                         </h4>
                         <p>{{story.date}}</p>
                         <p>
-                             {{ story.content }}
+                            {% if story.context.blurb %}
+                                {% autoescape off %}
+                                    {{ story.context.blurb }}
+                                {% endautoescape %}
+                            {% else %}
+                                {{ story.content }}
+                            {% endif %}
                         </p>
-                                           
+                        
+                        
                         {% for entity in story.context.entities %}
                             <p style="font-weight: bold;">{{ entity.name }}</p>
                             {% for instance in entity.instances %}
                                 {% autoescape off %}
-                                    <p style="font-style: italic;">{{ instance }}</p>
+                                    <!--<p style="font-style: italic;">{{ instance }}</p>-->
                                 {% endautoescape %}
                             {% endfor %}
                         {% endfor %}
     
                     </div>
                 </div>
-                {% if forloop.counter0|divisibleby:3 %}
+                {% if forloop.counter|divisibleby:3 %}
                     <div style="clear: both;"></div>
                 {% endif %}
-            {% endif %}
+            
         {% endfor %}
         
     

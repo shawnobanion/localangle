@@ -25,6 +25,10 @@ def scrape_and_store_sportspeople():
     db = get_connection()
     scrape_and_store_subcategories('http://en.wikipedia.org/wiki/Category:American_sportspeople_by_state', '^(?P<type>Sportspeople|Basketball players|Baseball players) from (?P<location>.*)', db.persons)
 
+def scrape_and_store_actors():
+    db = get_connection()
+    scrape_and_store_subcategories('http://en.wikipedia.org/wiki/Category:American_actors_by_state', '^(?P<type>Actors) from (?P<location>.*)', db.persons)
+
 #################################################
 
 def scrape_and_store_subcategories(url, location_regex, db_collection):

@@ -19,12 +19,12 @@
     {% for location in state.list|dictsort:"location.city" %}
         <p>
             {% if location.location.city %}
-                <a href="/news/{{ location.location.state }}/{{ location.location.city }}">{{ location.location.city }}, {{ location.location.state }} ({{ location.count }})</a>
-                {% if location.new %}
+                <a href="/news/{{ location.location.state }}/{{ location.location.city }}">{{ location.location.city }}, {{ location.location.state }} ({{ location.metadata.companies }}, {{ location.metadata.persons }})</a>
+                {% if location.metadata.isnew %}
                 <span style="color: #B10816;">new</span>
                 {% endif %}
             {% else %}
-                <a href="/news/{{ location.location.state }}">{{ location.location.state }} ({{ location.count }})</a>
+                <a href="/news/{{ location.location.state }}">{{ location.location.state }} ({{ location.metadata.companies }}, {{ location.metadata.persons }})</a>
             {% endif %}
         </p>
     {% endfor %}
